@@ -2,11 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Group;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 
 class DatabaseSeeder extends Seeder
 {
@@ -44,6 +46,16 @@ class DatabaseSeeder extends Seeder
 
         $conversations = $messages->groupBy(function ($message) {
             return collect([$message->sender_id, $message->receiver_id])->sort()->implode('-');
-        });
+        })->map(function ($groupedmessage){
+            return [
+                'user_id1' => $groupedmessage->first()->sender_id,
+                'user_id2' => $groupedmessage->last()->receiver_id,
+                'last_message_id' => $groupedmessage->last()->id,
+                'created_at' => new Carbon(),
+                'updated_at' => new Carbon(),
+            ];
+        })->values();
+
+        Conversation::insertOrIgnore($conversations->toArray());
     }
 }
